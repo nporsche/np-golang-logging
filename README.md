@@ -37,32 +37,26 @@ var format = logging.MustStringFormatter(
 type Password string
 
 func (p Password) Redacted() interface{} {
-	return logging.Redact(string(p))
+    return logging.Redact(string(p))
 }
 
 func main() {
-	// For demo purposes, create two backend for os.Stderr.
-	backend1 := logging.NewLogBackend(os.Stderr, "", 0)
-	backend2 := logging.NewLogBackend(os.Stderr, "", 0)
+    /* logger initiailization */
+    backend, err := logging.NewSyslogBackendPriority("langley_proxy", syslog.LOG_LOCAL3)
+    if err != nil {
+        fmt.Printf("logging init error=[%s]", err.Error())
+        os.Exit(1)
+    }
+    format := logging.MustStringFormatter("%{color}[%{module}.%{shortfunc}][%{level:.4s}]%{color:reset}%{message}")
+    logging.SetBackend(logging.NewBackendFormatter(backend, format))
+    /* end logger initiailization */
 
-	// For messages written to backend2 we want to add some additional
-	// information to the output, including the used log level and the name of
-	// the function.
-	backend2Formatter := logging.NewBackendFormatter(backend2, format)
-
-	// Only errors and more severe messages should be sent to backend1
-	backend1Leveled := logging.AddModuleLevel(backend1)
-	backend1Leveled.SetLevel(logging.ERROR, "")
-
-	// Set the backends to be used.
-	logging.SetBackend(backend1Leveled, backend2Formatter)
-
-	log.Debug("debug %s", Password("secret"))
-	log.Info("info")
-	log.Notice("notice")
-	log.Warning("warning")
-	log.Error("err")
-	log.Critical("crit")
+    log.Debug("debug %s", Password("secret"))
+    log.Info("info")
+    log.Notice("notice")
+    log.Warning("warning")
+    log.Error("err")
+    log.Critical("crit")
 }
 ```
 
@@ -70,11 +64,11 @@ func main() {
 
 ### Using *go get*
 
-    $ go get github.com/op/go-logging
+$ go get github.com/op/go-logging
 
 After this command *go-logging* is ready to use. Its source will be in:
 
-    $GOROOT/src/pkg/github.com/op/go-logging
+$GOROOT/src/pkg/github.com/op/go-logging
 
 You can use `go get -u` to update the package.
 
@@ -82,7 +76,7 @@ You can use `go get -u` to update the package.
 
 For docs, see http://godoc.org/github.com/op/go-logging or run:
 
-    $ godoc github.com/op/go-logging
+$ godoc github.com/op/go-logging
 
 ## Additional resources
 
